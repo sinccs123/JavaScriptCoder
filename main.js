@@ -3,44 +3,59 @@ alert("Bienvenido a la Categoría de Tattoos")
 let listado = true
 let inicio = true
 let continuar = true
-
+let intentos = 3
+let identificador = true
     
     do{
-        let usuario = prompt("Ingrese el Nombre") .toLowerCase()
-        if(usuario == "" || usuario == null || /\d/.test(usuario)){
-            alert("No ha ingresado ningun nombre")
-            inicio = confirm("¿Deseas volver a intentarlo?")
-            if(!inicio){
-                alert("Lo vas a reintentar igual")
-                inicio = true
-            }
+        let usuario = prompt("Ingrese el Nombre (Tres intentos)") .toLowerCase()
+
+        if(usuario == "" && intentos <=3) {  /**No pude agregarle para evitar numeros. Quería que solo acepte String. Probé con (usuario != num) o (usuario != NaN) pero se rompía todo*/
+            alert("No ha ingresado ningun nombre. "+intentos+" intentos")
+            intentos--
+                if(intentos<=0){
+                    alert("usted superó los 3 intentos")
+                    inicio = true
+                }
+
+                else{
+                    inicio=confirm("¿Deseas volver a intentarlo?")
+                }
         }
         else{
             alert("Bienvenido "+usuario+" ¿Qué tal si empezamos con una búsqueda rápida?")
             inicio = false
+            identificador = false
         }
     }
-    while(inicio)
+    while(inicio && identificador===true)
+
+
+    function reiniciarProceso(){ 
+        alert("Volviendo al inicio...")
+        inicio = true;
+        continuar = true;
+    }
 
     function ListadoTattoos() {
         console.log("Opciones de estilos disponibles:")
         console.log("1. Minimalistas - Desde $500 USD")
         console.log("2. American Old School - Desde $650 USD")
         console.log("3. Tradicionales - Desde 700 USD")
-        console.log("4. Personalizado - $1200 USD")
+        console.log("4. Personalizado - $1200 USD (más impuesto)")
     }
 
     ListadoTattoos()
-
-    function reiniciarProceso(){ 
-        alert("Volviendo al inicio...")
-        location.reload()}
 
     do{let buscar = prompt("Selecciona un estilo en particular que te interese\n"+"(Escribe un numero del 1 al 4)\n"+"\n"+
                             "1. Minimalistas - Desde $500 USD\n"+
                             "2. American Old School - Desde $650 USD\n"+
                             "3. Tradicionales - Desde 700 USD\n"+
-                            "4. Personalizado - $1200 USD")
+                            "4. Personalizado - $1200 USD (más impuesto)")
+
+        if (buscar === null) {
+            reiniciarProceso();
+            break
+        }
 
         switch (buscar){
             case "1":
@@ -86,8 +101,12 @@ let continuar = true
             case "4":
                 let monto4 = prompt("Seleccionaste Personalizado: Escribe un monto superior a los 1200 USD.")
                 monto4 = parseFloat(monto4)
+                    
+                    const impuesto = 150
+                    let aplicarimpuesto = monto4 + impuesto
+                    
                     if(monto4 >= 1200){
-                        alert("Excelente con "+monto4+" tenes disponibilidad. Contactate con nosotros")
+                        alert("Excelente con "+monto4+" sumado al impuesto de "+impuesto+", tenes disponibilidad.")
                         alert("Comunicate al 011-424 5944")
                         reiniciarProceso();
                     }
@@ -98,6 +117,7 @@ let continuar = true
 
             default: alert("Opción no válida. Por favor, selecciona una opción del 1 al 4.")
             break
+            
         }
     }
     while (continuar)
