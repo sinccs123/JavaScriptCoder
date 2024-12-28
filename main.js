@@ -29,11 +29,29 @@ function paso2() {
     alert("Buscando tatuadores disponibles")
     const tatuadores = ["Marcos", "Raul", "Marina", "Eduardo", "Miguel"]
     const tatuadordispo = tatuadores[Math.floor(Math.random()*tatuadores.length)]
-    const horario = [14+" hs", 16+" hs", 18+" hs", 20+" hs"]
-    const horariodispo = horario[Math.floor(Math.random()*horario.length)]
-    alert("Tenés disponibilidad con "+tatuadordispo+" en el horario: "+horariodispo)
+    alert("Tenés disponibilidad con "+tatuadordispo)
+    return tatuadordispo
+}
 
-    alert("Felicidades, tu turno con "+tatuadordispo+" a las "+horariodispo+ " ha sido reservado")
+function paso3(tatuadordispo) {
+    alert("Te otorgaremos un horario disponible")
+    
+    class Horarios{
+        constructor(hora) {
+            this.hora = hora;
+        }
+    }
+
+    let hora1 = new Horarios("14:30 hs")
+    let hora2 = new Horarios("16:30 hs")
+    let hora3 = new Horarios("21:00 hs")
+    let hora4 = new Horarios("22:30 hs")
+
+    let listaHorarios = [hora1, hora2, hora3, hora4]
+    
+    const horarioDisponible = listaHorarios [Math.floor( Math.random() * listaHorarios.length)].hora
+
+    alert("Felicidades, tu turno con "+tatuadordispo+" a las "+horarioDisponible+ " ha sido reservado")
     alert("Ante cualquier duda, llamá al 0800-444-7878")
 }
 
@@ -87,7 +105,8 @@ function manejarMonto(minimo, estilo, impuesto = 0) {
     } else {
         let total = monto + impuesto;
         alert(`Excelente, con ${total} USD tienes disponibilidad para el estilo ${estilo}.`);
-        paso2();
+        const tatuadorSeleccionado = paso2();
+        paso3(tatuadorSeleccionado);
         continuar = false
     }
 }
