@@ -1,114 +1,153 @@
-alert("Bienvenido a la Categoría de Tattoos");
+const Producto = function(nombre, precio, stock){
+    this.nombre = nombre
+    this.precio = precio
+    this.stock = stock
+}
 
-let listado = true;
-let inicio = true;
-let continuar = true;
-let identificador = true;
+let producto1 = new Producto ("guitarra eléctrica",44000,20)
+let producto2 = new Producto ("guitarra criolla",18000,10)
+let producto3 = new Producto ("bajo",52000,12)
+let producto4 = new Producto ("triangulo eléctrico",6200,22)
+let producto5 = new Producto ("flauta dulce",5500,2)
 
-function Login() {
-    let intentos = 3;
-    let usuario;
+let lista = [producto1, producto2, producto3, producto4, producto5]
 
-    while (intentos > 0) {
-        usuario = prompt("Ingrese su nombre (tienes " + intentos + " intentos):").toLowerCase();
-
-        if (usuario == "") {
-            alert("Nombre inválido. Vuelva a intentarlo.");
-            intentos--;
-        } else {
-            alert("Bienvenido " + usuario + " ¿Qué tal si empezamos con una búsqueda rápida?");
-            return usuario;
-        }
+    if(localStorage.getItem("productos")){
+        lista = JSON.parse(localStorage.getItem("productos"))
+    }
+    else{
+        lista = lista
     }
 
-    alert("Superaste los 3 intentos.");
-    return null;
+function filtrarTattoo(){
+    Swal.fire({
+        title: "Ingresa el instrumento que deseas buscar",
+        input: "text",
+        showCancelButton: true,
+        ConfirmButtonText: "Buscar",
+        showLoaderOnConfirm: true,
+        
+        customClass: {
+            popup: "custom-popup",
+            confirmButton: "custom-confirm-btn",
+            cancelButton: "custom-cancel-btn",
+            title: "custom-title"
+        },
+
+        preConfirm: (palabraClave)=>{
+            palabraClave = palabraClave.trim().toUpperCase()
+            let resultado = lista.filter((producto)=>producto.nombre.toUpperCase().includes(palabraClave))  
+
+            if(resultado.length >0){
+                Swal.fire({
+                    title: "Este es el resultado de tu busqueda",
+                    html: "<table><tr> <th>Resultados:</th></table>" + 
+                    resultado.map(  (producto)=> `<tr> Producto: <td>${producto.nombre}</td> . Precio: <td>${producto.precio}</td> . Stock: <td>${producto.stock}</td> </tr>`),
+
+                    customClass: {
+                        popup: "custom-popup",
+                        confirmButton: "custom-confirm-btn",
+                        cancelButton: "custom-cancel-btn",
+                        title: "custom-title"
+                    }
+                })
+            }
+        
+            else{
+                Swal.fire({
+                    title: "No se encuentra coincidencias",
+                    icon: "error",
+                    ConfirmButtonText: "ok",
+
+                    customClass: {
+                        popup: "custom-popup",
+                        confirmButton: "custom-confirm-btn",
+                        cancelButton: "custom-cancel-btn",
+                    }
+                })
+            }
+        } 
+
+    })
 }
 
-function paso2() {
-    alert("Buscando tatuadores disponibles")
-    const tatuadores = ["Marcos", "Raul", "Marina", "Eduardo", "Miguel"]
-    const tatuadordispo = tatuadores[Math.floor(Math.random()*tatuadores.length)]
-    alert("Tenés disponibilidad con "+tatuadordispo)
-    return tatuadordispo
-}
+function agregarTattoo(){
+    Swal.fire({
+        title: "Agregar instrumento",
+        html: `<label>Nombre:</label><input id="nombre-input" class="swal2-input" type="text" autofocus>
+        <label>Precio</label><input id="precio-input" class="swal2-input" type="number" step="0.01">
+        <label>Stock</label><input id="stock-input" class="swal2-input" type="number" step="1">`,
 
-function paso3(tatuadordispo) {
-    alert("Te otorgaremos un horario disponible")
-    
-    class Horarios{
-        constructor(hora) {
-            this.hora = hora;
+        showCancelButton: true,
+        ConfirmButtonText: "agregar",
+        cancelButtonText: "cancelar",
+        
+        customClass: {
+            popup: "custom-popup",
+            confirmButton: "custom-confirm-btn",
+            cancelButton: "custom-cancel-btn",
+            title: "custom-title"
         }
-    }
 
-    let hora1 = new Horarios("14:30 hs")
-    let hora2 = new Horarios("16:30 hs")
-    let hora3 = new Horarios("21:00 hs")
-    let hora4 = new Horarios("22:30 hs")
+    }).then((result)=>{
+        if(result.isConfirmed){
+            let nombre = document.getElementById("nombre-input").value.trim();
+            let precio = document.getElementById("precio-input").value.trim();
+            let stock = document.getElementById("stock-input").value.trim();
+            
+            if(isNaN(precio) || isNaN(stock) || nombre === ""){
+                Swal.fire(
+                    {
+                        icon: "error",
+                        title: "Error",
+                        Text: "Por favor ingresa valores validos",
+                    }
+                ); return
+            }
+            let producto = new Producto(nombre, precio, stock)
 
-    let listaHorarios = [hora1, hora2, hora3, hora4]
-    
-    const horarioDisponible = listaHorarios [Math.floor( Math.random() * listaHorarios.length)].hora
+                if(lista.some (   (elemento)=> elemento.nombre === producto.nombre)){
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Advertencia",
+                        text: "El instrumento ya existe en el listado",
 
-    alert("Felicidades, tu turno con "+tatuadordispo+" a las "+horarioDisponible+ " ha sido reservado")
-    alert("Ante cualquier duda, llamá al 0800-444-7878")
-}
+                        customClass: {
+                            popup: "custom-popup",
+                            confirmButton: "custom-confirm-btn",
+                            cancelButton: "custom-cancel-btn",
+                            title: "custom-title"
+                        }
 
-function listadoTattoos() {
-    console.log("Opciones de estilos disponibles:");
-    console.log("1. Minimalistas - Desde $500 USD");
-    console.log("2. American Old School - Desde $650 USD");
-    console.log("3. Tradicionales - Desde $700 USD");
-    console.log("4. Personalizado - $1200 USD (más impuesto)");
-}
+                    }); return
+                }
+                lista.push(producto)
 
-const usuario = Login();
-if (usuario) {
-    listadoTattoos();
+                localStorage.setItem("productos", JSON.stringify(lista))
 
-    do {
-        let buscar = prompt(
-            "Selecciona un estilo en particular que te interese\n" +
-            "(Escribe un número del 1 al 4)\n\n" +
-            "1. Minimalistas - Desde $500 USD\n" +
-            "2. American Old School - Desde $650 USD\n" +
-            "3. Tradicionales - Desde $700 USD\n" +
-            "4. Personalizado - $1200 USD (más impuesto)"
-        );
+                Swal.fire({
+                    icon: "success",
+                    title: "Instrumento Agregado",
+                    text: `Se agregó ${producto.nombre} a la lista`,
+                    timer: 3000,
 
-        switch (buscar) {
-            case "1":
-                manejarMonto(500, "Minimalistas");
-                break;
-            case "2":
-                manejarMonto(650, "American Old School");
-                break;
-            case "3":
-                manejarMonto(700, "Tradicionales");
-                break;
-            case "4":
-                manejarMonto(1200, "Personalizado", 150);
-                break;
-            default:
-                alert("Opción no válida. Por favor, selecciona una opción del 1 al 4.");
+                    customClass: {
+                        popup: "custom-popup",
+                        confirmButton: "custom-confirm-btn",
+                        cancelButton: "custom-cancel-btn",
+                        title: "custom-title"
+                    }
+                })
+                console.table(lista)
         }
-    } while (continuar);
-} else {
-    alert("No se pudo iniciar el proceso debido a intentos fallidos.");
-}
-
-function manejarMonto(minimo, estilo, impuesto = 0) {
-    let monto = parseFloat(prompt(`Seleccionaste ${estilo}: Escribe un monto superior a ${minimo} USD.`));
-    if (isNaN(monto) || monto < minimo) {
-        alert(`Monto inválido. Debe ser un número superior a ${minimo} USD.`);
-    } else {
-        let total = monto + impuesto;
-        alert(`Excelente, con ${total} USD tienes disponibilidad para el estilo ${estilo}.`);
-        const tatuadorSeleccionado = paso2();
-        paso3(tatuadorSeleccionado);
-        continuar = false
-    }
+    })
 }
 
 
+/*  BOTONERA  */
+
+let agregar = document.getElementById("agregar")
+agregar.addEventListener("click", agregarTattoo)
+
+let filtrar = document.getElementById("filtrar")
+filtrar.addEventListener("click", filtrarTattoo)
