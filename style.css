@@ -42,7 +42,7 @@ button:hover{
     background-color: #1c1c1c;
     color: white;
     width: 58rem;
-    height: 50rem;
+    height: 34rem;
 }
 
 .custom-popup-2{
@@ -182,14 +182,11 @@ h4{
     color: white;
 }
 
-tbody{
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    padding-top: 1rem;
+.custom-list {
+    list-style: none;
+    padding: 0;
 }
 
-tr{
-    width: 100%;
-    padding-left: 2rem;
+.custom-list li {
+    margin-bottom: 1rem;
 }

@@ -1,22 +1,43 @@
-const Producto = function(nombre, precio, stock) {
+const Producto = function(nombre, precio, stock, imagen) {
     this.nombre = nombre;
     this.precio = precio;
     this.stock = stock;
-}
+    this.imagen = imagen;
+};
 
-let producto1 = new Producto("Green Day: American Idiot", 74000, 15);
-let producto2 = new Producto("Rammstein: Mutter", 52000, 12);
-let producto3 = new Producto("Iron Mainden: The trooper", 180000, 4);
-let producto4 = new Producto("RATM: Freedom", 62200, 22);
-let producto5 = new Producto("Millencolin: Life On a Plate", 55500, 2);
+let producto1 = new Producto("Rammstein: Mutter", 74000, 15, "imagenes/rammstein.jpg");
+let producto2 = new Producto("Green day: American Idiot", 52000, 12, "imagenes/greenday.jpg");
+let producto3 = new Producto("Iron Maiden: The Trooper", 180000, 4, "imagenes/ironmaiden.jpg");
+let producto4 = new Producto("RATM: Freedom", 62200, 22, "imagenes/ratm.jpg");
+let producto5 = new Producto("Millencolin: Life On a Plate", 55500, 2, "imagenes/millencolin.jpg");
+let producto6 = new Producto("Gorillaz: Plastic Beach", 85500, 5, "imagenes/gorillaz.jpg");
 
-let lista = [producto1, producto2, producto3, producto4, producto5];
+let lista = [producto1, producto2, producto3, producto4, producto5, producto6];
 
 if (localStorage.getItem("productos")) {
     lista = JSON.parse(localStorage.getItem("productos"));
 }
 
-function filtrarVinilo(){
+function fetchExchangeRate() {
+    return fetch("https://v6.exchangerate-api.com/v6/78db91e865e675263116e49d/latest/USD")
+        .then(response => response.json())
+        .then(data => data.conversion_rates.ARS)
+        .catch(error => {
+            console.error("Error fetching exchange rate:", error);
+            Swal.fire({
+                title: "Error fetching exchange rate",
+                icon: "error",
+                confirmButtonText: "OK",
+            });
+            return null;
+        });
+}
+
+function convertToUSD(amount, exchangeRate) {
+    return (amount / exchangeRate).toFixed(2);
+}
+
+function filtrarVinilo() {
     Swal.fire({
         title: "Ingresa el vinilo que deseas buscar",
         input: "text",
@@ -30,23 +51,28 @@ function filtrarVinilo(){
             title: "custom-title"
         }
     }).then((result) => {
-        if(result.isConfirmed && result.value) {
+        if (result.isConfirmed && result.value) {
             let palabraClave = result.value.trim().toUpperCase();
 
             let resultado = lista.filter((producto) =>
                 producto.nombre.toUpperCase().includes(palabraClave)
             );
 
-            if(resultado.length > 0) {
+            fetchExchangeRate().then(exchangeRate => {
+                if (exchangeRate !== null && resultado.length > 0) {
+                    let htmlContent = resultado.map((producto) => `
+                    <ul class="custom-list">
+                        <li class="left-column"><strong>Producto:</strong> ${producto.nombre}</li>
+                        <li class="left-column"><strong>Precio:</strong> $${producto.precio} (ARS) / $${convertToUSD(producto.precio, exchangeRate)} (USD)</li>
+                        <li class="left-column"><strong>Stock:</strong> ${producto.stock}</li>
+                        <li class="right-column"><img src="${producto.imagen}" alt="${producto.nombre}" style="max-width: 200px;"></li>
+                    </ul><hr>
+                    `).join("");
 
-                let producto = resultado[0];
-
-                let partes = producto.nombre.split(":");
-                if(partes.length < 2) {
-                    return Swal.fire({
-                        title: "Error",
-                        text: "El formato del nombre es inválido. Ingresa un Artista o Título",
-                        icon: "error",
+                    Swal.fire({
+                        title: "Resultados encontrados",
+                        confirmButtonText: "Comprar",
+                        html: htmlContent,
                         customClass: {
                             popup: "custom-popup",
                             confirmButton: "custom-confirm-btn",
@@ -54,84 +80,24 @@ function filtrarVinilo(){
                             title: "custom-title"
                         }
                     });
-                }
-
-                let artista = partes[0].trim();
-                let titulo = partes[1].trim();
-
-                const url = `https://private-anon-6777dcb0e1-lyricsovh.apiary-proxy.com/v1/${encodeURIComponent(artista)}/${encodeURIComponent(titulo)}`;
-
-                fetch(url)
-                    .then(response => {
-                        if(!response.ok) {
-                            throw new Error("No se encuentra en nuestro listado");
+                } else {
+                    Swal.fire({
+                        title: "No se encuentra en nuestro stock",
+                        icon: "error",
+                        confirmButtonText: "OK",
+                        customClass: {
+                            popup: "custom-popup-failsearch",
+                            confirmButton: "custom-confirm-btn",
+                            cancelButton: "custom-cancel-btn"
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        let lyrics = data.lyrics || "No se encontraron lyrics para esta canción.";
-
-                        let htmlContent = `
-                            <table>
-                                <tr>
-                                    <th>Producto:</th>
-                                    <td>${producto.nombre}</td>
-                                </tr>
-                                <tr>
-                                    <th>Precio:</th>
-                                    <td>${producto.precio}</td>
-                                </tr>
-                                <tr>
-                                    <th>Stock:</th>
-                                    <td>${producto.stock}</td>
-                                </tr>
-                            </table>
-                            <br>
-                            <strong>Lyrics:</strong>
-                            <p style="white-space: pre-wrap;">${lyrics}</p>
-                        `;
-
-                        Swal.fire({
-                            title: "Resultado de la búsqueda",
-                            html: htmlContent,
-                            customClass: {
-                                popup: "custom-popup",
-                                confirmButton: "custom-confirm-btn",
-                                cancelButton: "custom-cancel-btn",
-                                title: "custom-title"
-                            }
-                        });
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            title: "Error al obtener datos sobre el vinilo",
-                            text: error.message,
-                            icon: "error",
-                            customClass: {
-                                popup: "custom-popup-failyrics",
-                                confirmButton: "custom-confirm-btn",
-                                cancelButton: "custom-cancel-btn",
-                                title: "custom-title"
-                            }
-                        });
                     });
-            } else {
-                Swal.fire({
-                    title: "No se encuentra en nuestro stock",
-                    icon: "error",
-                    confirmButtonText: "OK",
-                    customClass: {
-                        popup: "custom-popup-failsearch",
-                        confirmButton: "custom-confirm-btn",
-                        cancelButton: "custom-cancel-btn"
-                    }
-                });
-            }
+                }
+            });
         }
     });
 }
 
-function agregarVinilo(){
+function agregarVinilo() {
     Swal.fire({
         title: "Vender un vinilo",
         html: `<label>Nombre:</label><input id="nombre-input" class="swal2-input" type="text" autofocus>
@@ -146,13 +112,13 @@ function agregarVinilo(){
             cancelButton: "custom-cancel-btn",
             title: "custom-title"
         }
-    }).then((result)=>{
-        if(result.isConfirmed){
+    }).then((result) => {
+        if (result.isConfirmed) {
             let nombre = document.getElementById("nombre-input").value.trim();
             let precio = document.getElementById("precio-input").value.trim();
             let stock = document.getElementById("stock-input").value.trim();
-            
-            if(isNaN(precio) || isNaN(stock) || nombre === ""){
+
+            if (isNaN(precio) || isNaN(stock) || nombre === "") {
                 Swal.fire({
                     icon: "error",
                     title: "Error",
@@ -160,10 +126,10 @@ function agregarVinilo(){
                 });
                 return;
             }
-            
+
             let producto = new Producto(nombre, precio, stock);
 
-            if(lista.some((elemento)=> elemento.nombre === producto.nombre)){
+            if (lista.some((elemento) => elemento.nombre === producto.nombre)) {
                 Swal.fire({
                     icon: "warning",
                     title: "Advertencia",
@@ -177,7 +143,7 @@ function agregarVinilo(){
                 });
                 return;
             }
-            
+
             lista.push(producto);
             localStorage.setItem("productos", JSON.stringify(lista));
 
